@@ -5,6 +5,7 @@ from contextlib import asynccontextmanager
 from app.database import Base, db, engine
 from app.exceptions import AppException
 from app.module.auth.routes import router as auth_router
+from app.module.transactions.routes import router as transaction_router
 from app.module.auth.seed import seed_admin
 import uvicorn
 
@@ -29,13 +30,10 @@ async def app_exception_handler(request: Request, exc: AppException):
 async def root():
     return {"message": "API is running"}
 
-
-
 Base.metadata.create_all(bind=engine)
 
-
-
 app.include_router(auth_router, prefix="/auth", tags=["Auth"])
+app.include_router(transaction_router, prefix="/transactions", tags=["Transactions"])
 
 if __name__ == "__main__":
     

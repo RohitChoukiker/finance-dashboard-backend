@@ -1,8 +1,8 @@
 from sqlalchemy import UUID, Column, String, Boolean
+from sqlalchemy.orm import relationship
 from app.database import Base
 import uuid
     
-
 
 class User(Base):
     __tablename__ = "users"
@@ -13,3 +13,6 @@ class User(Base):
     password = Column(String(255), nullable=False)
     role = Column(String(20), default="viewer") 
     is_active = Column(Boolean, default=True)
+
+    
+    transactions = relationship("Transaction", back_populates="user")

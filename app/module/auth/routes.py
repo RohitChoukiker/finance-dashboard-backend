@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from app.database import db
-from app.module.auth.schemas import UserSignupRequest, UserLoginRequest
+from app.module.auth.schema import UserSignupRequest, UserLoginRequest
 from app.module.auth.service import AuthService
 from app.module.auth.dependencies import get_current_user, role_required
 from uuid import UUID

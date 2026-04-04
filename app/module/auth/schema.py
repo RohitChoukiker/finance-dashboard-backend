@@ -9,7 +9,6 @@ class UserSignupRequest(BaseModel):
     password: str = Field(..., min_length=6, max_length=72)
     
     
-    
 class UserLoginRequest(BaseModel):
     email: EmailStr
     password: str
@@ -24,7 +23,10 @@ class UserResponse(BaseModel):
     email: EmailStr
     role: UserRole
     is_active: bool
-
-
+    
+class UserPublicResponse(BaseModel):
+    name: str
+    email: EmailStr
+    
     class Config:
         from_attributes = True
