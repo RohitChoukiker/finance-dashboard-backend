@@ -193,6 +193,66 @@ def test_update_status():
 
     assert response.status_code == 200
 
-    
+
+
+def test_get_me_without_token():
+    res = client.get("/auth/me")
+    assert res.status_code in [401, 403]
+
+
+def test_duplicate_signup():
+    email = get_random_email()
+
+    client.post("/auth/signup", json={
+        "name": "User",
+        "email": email,
+        "password": "123456"
+    })
+
+    res = client.post("/auth/signup", json={
+        "name": "User",
+        "email": email,
+        "password": "123456"
+    })
+
+    assert res.status_code != 200
+
+
+def test_non_admin_cannot_get_users():
+    email = get_random_email()
+
+    client.post("/auth/signup", json={
+        "name": "User",
+        "email": email,
+        "password": "123456"
+    })
+
+    login = client.post("/auth/login", json={
+        "email": email,
+        "password": "123456"
+    })
+
+    token = login.json()["data"]["access_token"]
+
+    res = client.get(
+        "/auth/users",
+        headers={"Authorization": f"Bearer {token}"}
+    )
+
+    assert res.status_code == 403
+
+
+def test_invalid_token():
+    res = client.get(
+        "/auth/me",
+        headers={"Authorization": "Bearer invalidtoken123"}
+    )
+
+    assert res.status_code == 401
+
+
+def test_access_users_without_token():
+    res = client.get("/auth/users")
+    assert res.status_code in [401, 403]    
     
 
