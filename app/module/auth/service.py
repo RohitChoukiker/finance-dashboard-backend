@@ -6,7 +6,7 @@ class AuthService:
 
     def __init__(self, db):
         self.repo = UserRepository(db)
-
+        
     def signup(self, data):
         existing = self.repo.get_by_email(data.email)
 
@@ -37,6 +37,9 @@ class AuthService:
 
         if not user:
             raise AppException(404, "User not found")
+        
+        if not user.is_active:
+            raise AppException(403, "User is deactivated")
 
         if not AuthUtils.verify_password(data.password, user.password):
             raise AppException(400, "Invalid credentials")
@@ -55,3 +58,41 @@ class AuthService:
         self.repo.update_role(user, role)
 
         return {"message": "Role updated successfully"}
+    
+    
+    def get_all_users(self):
+        users = self.repo.get_all_users()
+        return {
+            "message": "Users fetched successfully",
+            "data": [
+                {
+                    "id": u.id,
+                    "name": u.name,
+                    "email": u.email,
+                    "role": u.role,
+                    "is_active": u.is_active
+                } for u in users
+            ]
+        }
+        
+    def get_users_count(self):
+        count = self.repo.count_users()
+        return {
+            "message": "Users count fetched",
+            "data": {"total_users": count}
+        }
+    
+    
+    def update_status(self, user_id, is_active):
+        user = self.repo.get_by_id(user_id)
+
+        if not user:
+            raise AppException(404, "User not found")
+
+        self.repo.update_status(user, is_active)
+
+        return {
+            "message": "User status updated"
+        }
+            
+        

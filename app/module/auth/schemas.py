@@ -1,5 +1,7 @@
+from uuid import UUID
 from pydantic import BaseModel, EmailStr, Field
 from typing import Literal
+from app.module.auth.enums import UserRole
 
 class UserSignupRequest(BaseModel):
     name: str
@@ -13,16 +15,16 @@ class UserLoginRequest(BaseModel):
     password: str
     
 class UserRoleUpdateRequest(BaseModel):
-    user_id: int
-    role: Literal["viewer", "analyst", "admin"]
+    user_id: UUID
+    role: UserRole
     
 class UserResponse(BaseModel):
-    id: int
+    id: UUID
     name: str
     email: EmailStr
-    role: str
+    role: UserRole
     is_active: bool
 
 
-class Config:
-    from_attributes = True
+    class Config:
+        from_attributes = True
