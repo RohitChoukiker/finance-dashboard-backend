@@ -14,7 +14,7 @@ class TransactionRepository:
         self.db.refresh(transaction)
         return transaction
 
-    def get_all(self, user_id=None, type=None, search=None, sort_by="created_at", order="desc", page=1, limit=10):
+    def get_all(self, user_id=None, type=None,category=None, search=None, sort_by="created_at", order="desc", page=1, limit=10):
         query = self.db.query(models.Transaction)
 
         if user_id is not None:
@@ -22,6 +22,9 @@ class TransactionRepository:
 
         if type:
             query = query.filter(models.Transaction.type == type)
+            
+        if category:    
+            query = query.filter(models.Transaction.category == category)
 
         if search:
             query = query.filter(

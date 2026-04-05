@@ -1,9 +1,10 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import List, Optional
 from datetime import datetime
 from enum import Enum
 from uuid import UUID
 from app.module.auth.schema import UserPublicResponse
+from app.module.transactions.enums import TransactionCategory
 
 
 class TransactionType(str, Enum):
@@ -12,10 +13,10 @@ class TransactionType(str, Enum):
 
 
 class TransactionCreate(BaseModel):
-    amount: float    
-    type: TransactionType
-    category: Optional[str] = None
-    description: Optional[str] = None
+    amount: float = Field(..., gt=0, example=1000)
+    type: TransactionType = Field(..., example="income")
+    category: Optional[TransactionCategory] = Field(None, example="salary")
+    description: Optional[str] = Field(None, example="Monthly salary")
 
 
 class TransactionResponse(BaseModel):
@@ -23,7 +24,7 @@ class TransactionResponse(BaseModel):
     user_id: UUID
     amount: float
     type: TransactionType
-    category: Optional[str] = None
+    category: Optional[TransactionCategory] = None
     description: Optional[str] = None
     created_at: datetime
     
@@ -47,3 +48,14 @@ class TransactionCreateResponse(BaseModel):
 
     class Config:
         from_attributes = True
+        
+        
+class CategorySummaryItem(BaseModel):
+    category: str
+    total: float
+    percentage: float
+
+
+class CategorySummaryResponse(BaseModel):
+    message: str
+    data: List[CategorySummaryItem]        

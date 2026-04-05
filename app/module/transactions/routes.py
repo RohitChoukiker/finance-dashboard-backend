@@ -4,7 +4,7 @@ from typing import Optional
 from uuid import UUID
 
 from app.database import db
-from app.module.transactions.schema import TransactionCreate, TransactionCreateResponse, TransactionListResponse, TransactionResponse
+from app.module.transactions.schema import CategorySummaryResponse, TransactionCreate, TransactionCreateResponse, TransactionListResponse, TransactionResponse
 from app.module.auth.dependencies import get_current_user, role_required
 from app.module.transactions.service import TransactionService
 
@@ -23,6 +23,7 @@ def create_transaction(
 @router.get("", response_model=TransactionListResponse)
 def get_transactions(
     type: Optional[str] = None,
+    category: Optional[str] = None,
     search: Optional[str] = None,  
     sort_by: Optional[str] = "created_at",  
     order: Optional[str] = "desc",
@@ -31,7 +32,7 @@ def get_transactions(
     db_session: Session = Depends(db),
     user=Depends(role_required(["admin", "analyst", "viewer"]))
 ):
-    return TransactionService(db_session).get_transactions(user, type, search, sort_by, order, page, limit)
+    return TransactionService(db_session).get_transactions(user, type, category, search, sort_by, order, page, limit)
 
 
 @router.get("/{transaction_id}", response_model=TransactionResponse)
@@ -49,7 +50,7 @@ def update_transaction(
     transaction_id: UUID,
     data: TransactionCreate,
     db_session: Session = Depends(db),
-    user=Depends(get_current_user)
+    user=Depends(role_required(["admin"]))
 ):
     return TransactionService(db_session).update_transaction(transaction_id, data, user)
 
@@ -58,21 +59,21 @@ def update_transaction(
 def delete_transaction(
     transaction_id: UUID,
     db_session: Session = Depends(db),
-    user=Depends(get_current_user)
+    user=Depends(role_required(["admin"]))
 ):
     return TransactionService(db_session).delete_transaction(transaction_id, user)
 
 
 
-@router.get("/dashboard/summary")
+@router.get("/dashboard/summary", response_model=dict)
 def get_summary(
     db_session: Session = Depends(db),
-    user=Depends(get_current_user)
+     user=Depends(get_current_user)
 ):
     return TransactionService(db_session).get_summary(user)
 
 
-@router.get("/dashboard/category")
+@router.get("/dashboard/category", response_model=CategorySummaryResponse)
 def category_summary(
     db_session: Session = Depends(db),
     user=Depends(get_current_user)

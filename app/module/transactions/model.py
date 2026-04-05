@@ -3,6 +3,8 @@ from sqlalchemy.orm import relationship
 from app.database import Base
 import uuid
 from sqlalchemy import Column, String, Float, DateTime, ForeignKey, UUID
+from app.module.transactions.enums import TransactionCategory
+from sqlalchemy.types import Enum as SQLAlchemyEnum
 
 class Transaction(Base):
     __tablename__ = "transactions"
@@ -11,7 +13,7 @@ class Transaction(Base):
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     amount = Column(Float, nullable=False)
     type = Column(String, nullable=False)
-    category = Column(String, nullable=True)
+    category = Column(SQLAlchemyEnum(TransactionCategory), nullable=True)
     description = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     user = relationship("User", back_populates="transactions")

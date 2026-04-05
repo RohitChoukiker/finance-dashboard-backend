@@ -13,30 +13,65 @@ class TransactionService:
 
  
     def create_transaction(self, data, user):
-        transaction = self.repo.create({
-            "user_id": user.id,
-            "amount": data.amount,
-            "type": data.type,
-            "category": data.category,
-            "description": data.description
-        })
-        
-        AuditService(self.repo.db).log(
+
+     INCOME_CATEGORIES = ["salary"]
+     EXPENSE_CATEGORIES = ["food", "travel", "shopping", "rent", "bills", "health", "entertainment"]
+
+    
+     if data.category:
+       if data.type == "income" and data.category not in INCOME_CATEGORIES:
+            raise AppException(400, "Invalid category for income")
+
+       if data.type == "expense" and data.category not in EXPENSE_CATEGORIES:
+             raise AppException(400, "Invalid category for expense")
+
+    
+     transaction = self.repo.create({
+        "user_id": user.id,
+        "amount": data.amount,
+        "type": data.type,
+        "category": data.category,
+        "description": data.description
+    })
+
+    
+     AuditService(self.repo.db).log(
         user_id=user.id,
         action="CREATE_TRANSACTION",
         entity="Transaction",
         entity_id=transaction.id,
         data={"amount": data.amount, "type": data.type}
     )
-        
-        return {"message": "Transaction created", "data": transaction}
 
-    def get_transactions(self, user, type=None, search=None, sort_by="created_at", order="desc", page=1, limit=10):
+     return {
+         "message": "Transaction created",
+        "data": transaction
+     }
+    
+    
+
+    def get_transactions(self, user, type=None,category=None, search=None, sort_by="created_at", order="desc", page=1, limit=10):
+
+        if page < 1:
+         page = 1
+
+        if limit > 100:
+         limit = 100
+         
+        ALLOWED_SORT_FIELDS = ["created_at", "amount"]
+        
+        if sort_by not in ALLOWED_SORT_FIELDS:
+         sort_by = "created_at"
+
+        if order not in ["asc", "desc"]:
+            order = "desc"
+
+ 
 
         if user.role == "viewer":
-            transactions, total = self.repo.get_all(user.id, type, search, sort_by, order, page, limit)
+            transactions, total = self.repo.get_all(user.id, type, category, search, sort_by, order, page, limit)
         else:
-            transactions, total = self.repo.get_all(None, type, search, sort_by, order, page, limit)
+            transactions, total = self.repo.get_all(None, type, category, search, sort_by, order, page, limit)
 
         return {
             "message": "Transactions fetched successfully",
@@ -53,7 +88,7 @@ class TransactionService:
         if not transaction:
             raise AppException(404, "Transaction not found")
 
-        if user.role == "viewer" and transaction.user_id != user.id:
+        if user.role == "viewer" and str(transaction.user_id) != str(user.id):
             raise AppException(403, "Unauthorized")
 
         return transaction
@@ -66,8 +101,18 @@ class TransactionService:
             raise AppException(404, "Transaction not found")
 
 
-        if user.role != "admin" and transaction.user_id != user.id:
+        if user.role != "admin" and str(transaction.user_id) != str(user.id):
             raise AppException(403, "Unauthorized")
+        
+        INCOME_CATEGORIES = ["salary"]
+        EXPENSE_CATEGORIES = ["food", "travel", "shopping", "rent", "bills", "health", "entertainment"]
+
+        if data.category:
+         if data.type == "income" and data.category not in INCOME_CATEGORIES:
+           raise AppException(400, "Invalid category for income")
+
+         if data.type == "expense" and data.category not in EXPENSE_CATEGORIES:
+            raise AppException(400, "Invalid category for expense")
 
         updated_tx = self.repo.update(transaction, data)
         
@@ -82,6 +127,7 @@ class TransactionService:
         return {"message": "Transaction updated", "data": updated_tx}
 
     
+    
     def delete_transaction(self, transaction_id, user):
         transaction = self.repo.get_by_id(transaction_id)
 
@@ -89,7 +135,7 @@ class TransactionService:
             raise AppException(404, "Transaction not found")
 
       
-        if user.role != "admin" and transaction.user_id != user.id:
+        if user.role != "admin" and str(transaction.user_id) != str(user.id):
             raise AppException(403, "Unauthorized")
 
         self.repo.delete(transaction)
@@ -136,10 +182,22 @@ class TransactionService:
             query = query.filter(Transaction.user_id == user.id)
 
         result = query.group_by(Transaction.category).all()
+        total_amount = sum(r.total for r in result)
+        data = []
+        
+        for r in result:
+            percentage = (r.total / total_amount * 100) if total_amount > 0 else 0
+
+            data.append({
+            "category": r.category.value, 
+            "total": r.total,
+            "percentage": round(percentage, 2) 
+        })
+
 
         return {
             "message": "Category summary",
-            "data": [{"category": r[0], "total": r[1]} for r in result]
+             "data": data
         }
 
 
