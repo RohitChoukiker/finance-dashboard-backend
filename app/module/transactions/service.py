@@ -2,6 +2,8 @@ from sqlalchemy import func, extract
 from app.module.transactions.repository import TransactionRepository
 from app.module.transactions.model import Transaction
 from app.exceptions import AppException
+from app.module.audit.service import AuditService
+from fastapi.encoders import jsonable_encoder
 
 
 class TransactionService:
@@ -18,6 +20,15 @@ class TransactionService:
             "category": data.category,
             "description": data.description
         })
+        
+        AuditService(self.repo.db).log(
+        user_id=user.id,
+        action="CREATE_TRANSACTION",
+        entity="Transaction",
+        entity_id=transaction.id,
+        data={"amount": data.amount, "type": data.type}
+    )
+        
         return {"message": "Transaction created", "data": transaction}
 
     def get_transactions(self, user, type=None, search=None, sort_by="created_at", order="desc", page=1, limit=10):
@@ -59,6 +70,14 @@ class TransactionService:
             raise AppException(403, "Unauthorized")
 
         updated_tx = self.repo.update(transaction, data)
+        
+        AuditService(self.repo.db).log(
+            user_id=user.id,
+            action="UPDATE_TRANSACTION",
+            entity="Transaction",
+            entity_id=transaction.id,
+            data=jsonable_encoder(data)
+        )
 
         return {"message": "Transaction updated", "data": updated_tx}
 
@@ -74,6 +93,13 @@ class TransactionService:
             raise AppException(403, "Unauthorized")
 
         self.repo.delete(transaction)
+        AuditService(self.repo.db).log(
+            user_id=user.id,
+            action="DELETE_TRANSACTION",
+            entity="Transaction",
+            entity_id=transaction.id,
+            data=None
+        )
 
         return {"message": "Transaction deleted"}
 
