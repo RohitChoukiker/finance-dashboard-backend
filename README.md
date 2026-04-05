@@ -65,8 +65,8 @@ User Signup → Store hashed password → Login → Generate JWT → Access prot
 
 # JWT Token
 Token contains:
-- user email (sub)
-- user role
+- **sub** → user email  
+- **role** → user role 
 
 Used for authentication in protected routes
 
