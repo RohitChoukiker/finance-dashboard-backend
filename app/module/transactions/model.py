@@ -2,7 +2,7 @@ from datetime import datetime
 from sqlalchemy.orm import relationship
 from app.database import Base
 import uuid
-from sqlalchemy import Column, String, Float, DateTime, ForeignKey, UUID
+from sqlalchemy import Boolean, Column, String, Float, DateTime, ForeignKey, UUID
 from app.module.transactions.enums import TransactionCategory
 from sqlalchemy.types import Enum as SQLAlchemyEnum
 
@@ -17,3 +17,4 @@ class Transaction(Base):
     description = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     user = relationship("User", back_populates="transactions")
+    is_deleted = Column(Boolean, default=False)

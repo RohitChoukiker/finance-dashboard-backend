@@ -16,6 +16,7 @@ class TransactionRepository:
 
     def get_all(self, user_id=None, type=None,category=None, search=None, sort_by="created_at", order="desc", page=1, limit=10):
         query = self.db.query(models.Transaction)
+        query = query.filter(models.Transaction.is_deleted.is_(False))
 
         if user_id is not None:
             query = query.filter(models.Transaction.user_id == user_id)
@@ -55,7 +56,8 @@ class TransactionRepository:
 
     def get_by_id(self, transaction_id):
         return self.db.query(models.Transaction).filter(
-            models.Transaction.id == transaction_id
+            models.Transaction.id == transaction_id,
+            models.Transaction.is_deleted == False
         ).first()
 
     def update(self, transaction, data):
@@ -68,6 +70,6 @@ class TransactionRepository:
         self.db.refresh(transaction)
         return transaction
 
-    def delete(self, transaction):
+    def hard_delete(self, transaction):
         self.db.delete(transaction)
         self.db.commit()

@@ -138,7 +138,8 @@ class TransactionService:
         if user.role != "admin" and str(transaction.user_id) != str(user.id):
             raise AppException(403, "Unauthorized")
 
-        self.repo.delete(transaction)
+        transaction.is_deleted = True
+        self.repo.db.commit()
         AuditService(self.repo.db).log(
             user_id=user.id,
             action="DELETE_TRANSACTION",
@@ -151,8 +152,10 @@ class TransactionService:
 
    
     def get_summary(self, user):
+        
         query = self.repo.db.query(Transaction)
-
+        query = query.filter(Transaction.is_deleted.is_(False))
+         
         if user.role == "viewer":
             query = query.filter(Transaction.user_id == user.id)
 
@@ -177,6 +180,8 @@ class TransactionService:
             Transaction.category,
             func.sum(Transaction.amount).label("total")
         )
+        
+        query = query.filter(Transaction.is_deleted.is_(False))
 
         if user.role == "viewer":
             query = query.filter(Transaction.user_id == user.id)
@@ -208,6 +213,8 @@ class TransactionService:
             Transaction.type,
             func.sum(Transaction.amount).label("total")
         )
+        
+        query = query.filter(Transaction.is_deleted.is_(False)) 
 
         if user.role == "viewer":
             query = query.filter(Transaction.user_id == user.id)
