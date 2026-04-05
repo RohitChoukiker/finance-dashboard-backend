@@ -215,4 +215,4 @@ Provides aggregated financial insights for users.
 The goal is to demonstrate strong backend engineering fundamentals and clean architecture.
 
 ## Author
-Rohit Choukiker
+ Rohit Choukiker
