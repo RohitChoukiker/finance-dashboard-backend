@@ -5,6 +5,15 @@ This project demonstrates clean backend architecture, access control, and data a
 
 ---
 
+## Tech Stack
+
+- FastAPI
+- PostgreSQL
+- SQLAlchemy
+- JWT (Authentication)
+- SlowAPI (Rate Limiting)
+- Pytest (Testing)
+
 ##  Overview
 
 This backend system allows users to manage financial transactions and view insights based on their role.
@@ -58,12 +67,12 @@ The Auth module provides a complete authentication and user management system wi
 - User management APIs (Admin only)
 - Account activation and deactivation
 - UUID-based user identification
-- Fully tested using pytest
+- Fully tested using pytest (including rate limit and security testing)
 
-# Authentication Flow
+## Authentication Flow
 User Signup → Store hashed password → Login → Generate JWT → Access protected routes
 
-# JWT Token
+## JWT Token
 Token contains:
 - **sub** → user email  
 - **role** → user role 
@@ -98,8 +107,41 @@ Authorization: Bearer <token>
 - Password hashing using bcrypt
 - JWT-based authentication
 - Role-based authorization
+- Rate limiting to prevent API abuse and brute-force attacks
 - Restricted admin endpoints
 - Inactive user login blocked
+
+# Rate Limiting (API Protection)
+
+To prevent API abuse and brute-force attacks, rate limiting is implemented using SlowAPI.
+
+## Features
+- Token-based rate limiting (per user)
+- IP-based fallback for unauthenticated users
+- Global middleware integration
+- Custom error handling for rate limit exceeded
+
+## Applied Limits
+
+### Auth APIs
+- Signup → 3 requests/minute
+- Login → 5 requests/minute
+
+### Transaction APIs
+- Create → 10 requests/minute
+- Update → 10 requests/minute
+- Delete → 10 requests/minute
+
+### Protection Goals
+- Prevent brute-force login attempts
+- Avoid spam transactions
+- Ensure fair API usage
+
+## Implementation Details
+- Custom `user_key` function extracts user token from Authorization header
+- Falls back to IP address if token is missing
+- Integrated using SlowAPIMiddleware
+- Returns HTTP 429 on limit exceed
 
 # Testing
 The project is fully tested using pytest:
@@ -108,6 +150,12 @@ The project is fully tested using pytest:
 - Dashboard tests
 - CRUD operations
 - Validation checks
+
+# Rate Limit Testing
+- Verified API rate limits using pytest
+- Simulated brute-force login attempts
+- Tested multiple requests to trigger HTTP 429
+- Validated user-based vs IP-based limits
 
 # Design Decisions
 - Used UUID for scalable user identification
@@ -196,7 +244,7 @@ Each log stores:
 
 Provides aggregated financial insights for users.
 
-# Features
+## Features
 - Total income and expense calculation
 - Balance calculation
 - Category-wise breakdown with percentage
@@ -210,6 +258,14 @@ Provides aggregated financial insights for users.
 # Design Decisions
 - Used aggregation queries for performance
 - Optimized grouping using SQL functions
+
+## Key Highlights
+
+- Implemented token/IP based rate limiting using SlowAPI
+- Designed scalable modular architecture
+- Built secure RBAC system with JWT authentication
+- Added audit logging for full traceability
+- Optimized queries for dashboard analytics
 
 
 The goal is to demonstrate strong backend engineering fundamentals and clean architecture.
