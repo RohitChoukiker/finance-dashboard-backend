@@ -3,7 +3,7 @@ import random
 from fastapi.testclient import TestClient
 from main import app
 
-client = TestClient(app)
+
 
 
 def get_random_email():
@@ -11,7 +11,16 @@ def get_random_email():
 
 
 @pytest.fixture
-def user_token():
+def client():
+    return TestClient(app)
+
+@pytest.fixture(autouse=True)
+def disable_rate_limit():
+    app.state.limiter.enabled = False
+
+
+@pytest.fixture
+def user_token(client):
     email = get_random_email()
 
     client.post("/auth/signup", json={
@@ -30,7 +39,7 @@ def user_token():
 
 
 @pytest.fixture
-def admin_token():
+def admin_token(client):
     res = client.post("/auth/login", json={
         "email": "admin@gmail.com",
         "password": "admin123"
