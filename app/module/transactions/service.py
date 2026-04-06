@@ -123,6 +123,7 @@ class TransactionService:
             entity_id=transaction.id,
             data=jsonable_encoder(data)
         )
+      
 
         return {"message": "Transaction updated", "data": updated_tx}
 
@@ -194,7 +195,7 @@ class TransactionService:
             percentage = (r.total / total_amount * 100) if total_amount > 0 else 0
 
             data.append({
-            "category": r.category.value, 
+             "category": r.category.value if r.category else None,
             "total": r.total,
             "percentage": round(percentage, 2) 
         })

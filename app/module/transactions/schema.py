@@ -59,3 +59,8 @@ class CategorySummaryItem(BaseModel):
 class CategorySummaryResponse(BaseModel):
     message: str
     data: List[CategorySummaryItem]        
+    
+
+class UpdateTransactionResponse(BaseModel):
+    message: str
+    data: TransactionResponse    

@@ -57,7 +57,7 @@ class TransactionRepository:
     def get_by_id(self, transaction_id):
         return self.db.query(models.Transaction).filter(
             models.Transaction.id == transaction_id,
-            models.Transaction.is_deleted == False
+            models.Transaction.is_deleted.is_(False)
         ).first()
 
     def update(self, transaction, data):

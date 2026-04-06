@@ -4,7 +4,7 @@ from typing import Optional
 from uuid import UUID
 
 from app.database import db
-from app.module.transactions.schema import CategorySummaryResponse, TransactionCreate, TransactionCreateResponse, TransactionListResponse, TransactionResponse
+from app.module.transactions.schema import CategorySummaryResponse, TransactionCreate, TransactionCreateResponse, TransactionListResponse, TransactionResponse, UpdateTransactionResponse
 from app.module.auth.dependencies import get_current_user, role_required
 from app.module.transactions.service import TransactionService
 
@@ -45,7 +45,7 @@ def get_transaction(
 
 
 
-@router.put("/{transaction_id}")
+@router.put("/{transaction_id}", response_model=UpdateTransactionResponse)
 def update_transaction(
     transaction_id: UUID,
     data: TransactionCreate,
