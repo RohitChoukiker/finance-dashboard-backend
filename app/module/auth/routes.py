@@ -5,13 +5,16 @@ from app.module.auth.schema import UserSignupRequest, UserLoginRequest
 from app.module.auth.service import AuthService
 from app.module.auth.dependencies import get_current_user, role_required
 from uuid import UUID
+from app.core.limiter import limiter
+from fastapi import Request
 
 
 router = APIRouter()
 
 
 @router.post("/signup")
-def signup(data: UserSignupRequest, db_session: Session = Depends(db)):
+@limiter.limit("3/minute")
+def signup( request: Request,   data: UserSignupRequest, db_session: Session = Depends(db)):
     service = AuthService(db_session)
     token = service.signup(data)
     return {
@@ -24,7 +27,8 @@ def signup(data: UserSignupRequest, db_session: Session = Depends(db)):
 
 
 @router.post("/login")
-def login(data: UserLoginRequest, db_session: Session = Depends(db)):
+@limiter.limit("5/minute")
+def login( request: Request,   data: UserLoginRequest, db_session: Session = Depends(db)):
     service = AuthService(db_session)
     token = service.login(data)
     return {

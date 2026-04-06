@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 from sqlalchemy.orm import Session
 from typing import Optional
 from uuid import UUID
@@ -7,12 +7,14 @@ from app.database import db
 from app.module.transactions.schema import CategorySummaryResponse, TransactionCreate, TransactionCreateResponse, TransactionListResponse, TransactionResponse, UpdateTransactionResponse
 from app.module.auth.dependencies import get_current_user, role_required
 from app.module.transactions.service import TransactionService
-
+from app.core.limiter import limiter
 router = APIRouter()
 
 
 @router.post("", response_model=TransactionCreateResponse)
+@limiter.limit("10/minute")
 def create_transaction(
+    request: Request, 
     data: TransactionCreate,
     db_session: Session = Depends(db),
     user=Depends(role_required(["admin", "viewer"]))
@@ -21,7 +23,9 @@ def create_transaction(
 
 
 @router.get("", response_model=TransactionListResponse)
+@limiter.limit("30/minute")
 def get_transactions(
+    request: Request, 
     type: Optional[str] = None,
     category: Optional[str] = None,
     search: Optional[str] = None,  
@@ -46,7 +50,9 @@ def get_transaction(
 
 
 @router.put("/{transaction_id}", response_model=UpdateTransactionResponse)
+@limiter.limit("10/minute")
 def update_transaction(
+    request: Request, 
     transaction_id: UUID,
     data: TransactionCreate,
     db_session: Session = Depends(db),
@@ -56,7 +62,9 @@ def update_transaction(
 
 
 @router.delete("/{transaction_id}")
+@limiter.limit("10/minute")
 def delete_transaction(
+    request: Request,
     transaction_id: UUID,
     db_session: Session = Depends(db),
     user=Depends(role_required(["admin"]))
